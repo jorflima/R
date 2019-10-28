@@ -8,13 +8,18 @@ output: html_document
 
 ## Introduction
 
-This project will utilize the HCUP 2016 National Inpatient Sample (NIS). It is a big dataset with over 7 million records (7,135,090 to be exact) and 98 variables in the core dataset. 
+This project will utilize the HCUP 2016 National Inpatient Sample (NIS). It is a big dataset with over 7 million records
+(7,135,090 to be exact) and 98 variables in the core dataset. 
 
-Three supplemental files were also provided: Severity, Hospital and the Cost to Charge ratio. Those contains several hospital characteristics, mortality and severity of illness and risks adjustment to the prices charged by hospitals respectively. Those additional files increase the number of variables by 14 (9 + 3 + 2) if the disregard the linking ones.
+Three supplemental files were also provided: Severity, Hospital and the Cost to Charge ratio. Those contains several
+hospital characteristics, mortality and severity of illness and risks adjustment to the prices charged by hospitals respectively. 
+Those additional files increase the number of variables by 14 (9 + 3 + 2) if the disregard the linking ones.
 
-With such numbers loading and manipulating the dataset could pose a challenge in itself. In R we opted to use the "readr" package (a part of tidyverse) and thankfully this was enough for a current laptop to handle.
+With such numbers loading and manipulating the dataset could pose a challenge in itself. In R we opted to use the 
+"readr" package (a part of tidyverse) and thankfully this was enough for a current laptop to handle.
 
-If that was not the case or if we needed to merge several years of the NIS, we contemplated to use MonetDB and MonetDBLite library to handle the data. More can be found at: 
+If that was not the case or if we needed to merge several years of the NIS, we contemplated to use MonetDB and MonetDBLite 
+library to handle the data. More can be found at: 
 
 https://www.monetdb.org/Documentation/UserGuide
 
@@ -34,7 +39,8 @@ knitr::opts_knit$set(root.dir = "/media/jorge/A4BACE90BACE5E84/Extra_Data/NIS_20
 ```
 
 
-Loading the data can be acomplished in two different ways. The first one was imputing the variable by variable directly specifying the names of the variables and their positions, like so: 
+Loading the data can be acomplished in two different ways. The first one was imputing the variable by variable directly
+specifying the names of the variables and their positions, like so: 
 
 
 ```{r}
@@ -42,7 +48,26 @@ Loading the data can be acomplished in two different ways. The first one was imp
 
 library(readr)
 
-NIS <- read_fwf("NIS_2016_Core.ASC", fwf_cols(AGE = c(1, 3), AGE_NEONATE = c(4, 5), AMONTH = c(6,7), AWEEKEND = c(8,9), DIED= c(10,11), DISCWT = c(12,22), DISPUNIFORM = c(23,24), DQTR = c(25,26), DRG = c(27,29), DRGVER = c(30,31), DRG_NoPOA = c(32,34), DXVER = c(35,36), ELECTIVE = c(37,38), FEMALE = c(39,40), HCUP_ED= c(41,43), HOSP_DIVISION= c(44,45), HOSP_NIS= c(46,50), I10_DX1 = c(51,57), I10_DX2 = c(58,64), I10_DX3 = c(65,71), I10_DX4 = c(72,78), I10_DX5 = c(79,85), I10_DX6 = c(86,92), I10_DX7 = c(93,99), I10_DX8 = c(100,106), I10_DX9 = c(107,113), I10_DX10 = c(114,120), I10_DX11= c(121,127), I10_DX12 = c(128,134), I10_DX13= c(135,141), I10_DX14= c(142,148), I10_DX15 = c(149,155), I10_DX16 = c(156,162), I10_DX17= c(163,169), I10_DX18 = c(170,176), I10_DX19 = c(177,183), I10_DX20 = c(184,190), I10_DX21= c(191,197), I10_DX22= c(198,204), I10_DX23 = c(205,211), I10_DX24 = c(212,218), I10_DX25 = c(219,225), I10_DX26 = c(226,232), I10_DX27 = c(233,239), I10_DX28 = c(240,246), I10_DX29 = c(247,253), I10_DX30 = c(254,260), I10_ECAUSE1 = c(261,267), I10_ECAUSE2 = c(268,274), I10_ECAUSE3 = c(275,281), I10_ECAUSE4 = c(282,288), I10_NDX = c(289,290), I10_NECAUSE = c(291,293), I10_NPR = c(294,295), I10_PR1 = c(296,302), I10_PR2 = c(303,309), I10_PR3 = c(310,316), I10_PR4 = c(317,323), I10_PR5= c(324,330), I10_PR6 = c(331,337), I10_PR7= c(338,344), I10_PR8= c(345,351), I10_PR9 = c(352,358), I10_PR10 = c(359,365), I10_PR11 = c(366,372), I10_PR12 = c(373,379), I10_PR13 = c(380,386), I10_PR14 = c(387,393), I10_PR15 = c(394,400), KEY_NIS = c(401,410), LOS = c(411,415), MDC = c(416,417), MDC_NoPOA = c(418,419), NIS_STRATUM = c(420,423), PAY1 = c(424,425), PL_NCHS = c(426,428), PRDAY1 = c(429,431), PRDAY2 = c(432,434), PRDAY3 = c(435,437), PRDAY4 = c(438,440),  PRDAY5 = c(441,443), PRDAY6 = c(444,446), PRDAY7 = c(447,449), PRDAY8 = c(450,452), PRDAY9 = c(453,455), PRDAY10 = c(456,458), PRDAY11 = c(459,461), PRDAY12 = c(462,464), PRDAY13 = c(465,467), PRDAY14 = c(468,470), PRDAY15 = c(471,473), PRVER = c(474,475), RACE = c(476,477), TOTCHG = c(478,487), TRAN_IN = c(488,489), TRAN_OUT = c(490,491), YEAR = c(492,495), ZIPINC_QRTL = c(496,497)))
+NIS <- read_fwf("NIS_2016_Core.ASC", fwf_cols(AGE = c(1, 3), AGE_NEONATE = c(4, 5), AMONTH = c(6,7), 
+AWEEKEND = c(8,9), DIED= c(10,11), DISCWT = c(12,22), DISPUNIFORM = c(23,24), DQTR = c(25,26), DRG = c(27,29),
+DRGVER = c(30,31), DRG_NoPOA = c(32,34), DXVER = c(35,36), ELECTIVE = c(37,38), FEMALE = c(39,40), 
+HCUP_ED= c(41,43), HOSP_DIVISION= c(44,45), HOSP_NIS= c(46,50), I10_DX1 = c(51,57), I10_DX2 = c(58,64), 
+I10_DX3 = c(65,71), I10_DX4 = c(72,78), I10_DX5 = c(79,85), I10_DX6 = c(86,92), I10_DX7 = c(93,99), 
+I10_DX8 = c(100,106), I10_DX9 = c(107,113), I10_DX10 = c(114,120), I10_DX11= c(121,127), I10_DX12 = c(128,134),
+I10_DX13= c(135,141), I10_DX14= c(142,148), I10_DX15 = c(149,155), I10_DX16 = c(156,162), I10_DX17= c(163,169),
+I10_DX18 = c(170,176), I10_DX19 = c(177,183), I10_DX20 = c(184,190), I10_DX21= c(191,197), I10_DX22= c(198,204),
+I10_DX23 = c(205,211), I10_DX24 = c(212,218), I10_DX25 = c(219,225), I10_DX26 = c(226,232), I10_DX27 = c(233,239),
+I10_DX28 = c(240,246), I10_DX29 = c(247,253), I10_DX30 = c(254,260), I10_ECAUSE1 = c(261,267), I10_ECAUSE2 = c(268,274),
+I10_ECAUSE3 = c(275,281), I10_ECAUSE4 = c(282,288), I10_NDX = c(289,290), I10_NECAUSE = c(291,293), I10_NPR = c(294,295),
+I10_PR1 = c(296,302), I10_PR2 = c(303,309), I10_PR3 = c(310,316), I10_PR4 = c(317,323), I10_PR5= c(324,330),
+I10_PR6 = c(331,337), I10_PR7= c(338,344), I10_PR8= c(345,351), I10_PR9 = c(352,358), I10_PR10 = c(359,365),
+I10_PR11 = c(366,372), I10_PR12 = c(373,379), I10_PR13 = c(380,386), I10_PR14 = c(387,393), I10_PR15 = c(394,400), 
+KEY_NIS = c(401,410), LOS = c(411,415), MDC = c(416,417), MDC_NoPOA = c(418,419), NIS_STRATUM = c(420,423), 
+PAY1 = c(424,425), PL_NCHS = c(426,428), PRDAY1 = c(429,431), PRDAY2 = c(432,434), PRDAY3 = c(435,437), 
+PRDAY4 = c(438,440),  PRDAY5 = c(441,443), PRDAY6 = c(444,446), PRDAY7 = c(447,449), PRDAY8 = c(450,452), 
+PRDAY9 = c(453,455), PRDAY10 = c(456,458), PRDAY11 = c(459,461), PRDAY12 = c(462,464), PRDAY13 = c(465,467), 
+PRDAY14 = c(468,470), PRDAY15 = c(471,473), PRVER = c(474,475), RACE = c(476,477), TOTCHG = c(478,487), 
+TRAN_IN = c(488,489), TRAN_OUT = c(490,491), YEAR = c(492,495), ZIPINC_QRTL = c(496,497)))
 
 
 str(NIS)
@@ -51,7 +76,9 @@ str(NIS)
 ```
 
 
-A second option is to use the file specification page on the HCUP site to load on the variables names and positions and from there inform the read_fwf command automatically with the values contained in the object generated from the internet page, as follows:
+A second option is to use the file specification page on the HCUP site to load on the variables names and positions
+and from there inform the read_fwf command automatically with the values contained in the object generated from 
+the internet page, as follows:
 
   
 ```{r}
@@ -78,19 +105,27 @@ head(mini_NIS)
 
 # Variable Selection:
 
-The original plan was to read all files, merge them and do the variable selection in one step. Due the file size I was running into memory problems, so the variable selection will be done in two steps, one before the merge and the second after it.
+The original plan was to read all files, merge them and do the variable selection in one step. 
+Due the file size I was runninginto memory problems, so the variable selection will be done in two steps, 
+one before the merge and the second after it.
 
 ```{r}
 
 #Dropping unnecessary variables in the core file:
 
-keep <- names(NIS) %in% c("AGE", "AMONTH", "AWEEKEND", "DIED", "DISPUNIFORM", "DQTR", "DRG", "ELECTIVE", "FEMALE", "HCUP_ED", "HOSP_DIVISION", "HOSP_NIS", "I10_DX1", "I10_NDX", "I10_NPR", "I10_PR1", "I10_PR2", "I10_PR3", "I10_PR4", "I10_PR5", "I10_PR6", "I10_PR7", "I10_PR8", "I10_PR9", "I10_PR10", "I10_PR11", "I10_PR12", "I10_PR13", "I10_PR14", "I10_PR15", "KEY_NIS", "LOS", "MDC", "PAY1", "PL_NCHS", "RACE", "TOTCHG", "YEAR", "ZIPINC_QRTL" ) 
+keep <- names(NIS) %in% c("AGE", "AMONTH", "AWEEKEND", "DIED", "DISPUNIFORM", "DQTR", "DRG", 
+"ELECTIVE", "FEMALE", "HCUP_ED", "HOSP_DIVISION", "HOSP_NIS", "I10_DX1", "I10_NDX", "I10_NPR", 
+"I10_PR1", "I10_PR2", "I10_PR3", "I10_PR4", "I10_PR5", "I10_PR6", "I10_PR7", "I10_PR8", "I10_PR9",
+"I10_PR10", "I10_PR11", "I10_PR12", "I10_PR13", "I10_PR14", "I10_PR15", "KEY_NIS", "LOS", "MDC", 
+"PAY1", "PL_NCHS", "RACE", "TOTCHG", "YEAR", "ZIPINC_QRTL" ) 
 NIS <- NIS[keep]
 
 str(NIS)
 ```
 
-Rationale for dropping most of the ICD 10 diagnostics codes: We only need the first one "I10_DX1" to calculate our statistic (see below), comorbities and the severiy of ill ness will be accounted for using other variables like DRG, number of additional diagnoses, length of stay and 3M's severity / mortality score.
+Rationale for dropping most of the ICD 10 diagnostics codes: We only need the first one "I10_DX1" to calculate 
+our statistic (see below), comorbities and the severiy of ill ness will be accounted for using other variables
+like DRG, number of additional diagnoses, length of stay and 3M's severity / mortality score.
 
 We have to keep all columns for the procedures because those are used as a criterion of exclusion (see below) 
 
@@ -139,7 +174,8 @@ info_SEVERITY
 
 ```{r}
 # Loading the SEVERITY dataset:
-SEVERITY <- read_fwf('NIS_2016_Severity.ASC', fwf_positions(start = info_SEVERITY$X6, end = info_SEVERITY$X7, col_names = info_SEVERITY$X5))   
+SEVERITY <- read_fwf('NIS_2016_Severity.ASC', fwf_positions(start = info_SEVERITY$X6, end = info_SEVERITY$X7,
+                                                            col_names = info_SEVERITY$X5))   
 
 head(SEVERITY)
 ```
@@ -192,7 +228,8 @@ Doing my second stage variable selection:
 
 ```{r}
 
-Dropnis <- names(NIS) %in% c("DISCWT", "HOSP_DIVISION.y", "NIS_STRATUM", "N_DISC_U", "N_HOSP_U", "S_HOSP_U", "HOSP_NIS.y", "X.YEAR.") 
+Dropnis <- names(NIS) %in% c("DISCWT", "HOSP_DIVISION.y", "NIS_STRATUM", "N_DISC_U", "N_HOSP_U", 
+                             "S_HOSP_U", "HOSP_NIS.y", "X.YEAR.") 
 
 NIS <- NIS[!Dropnis]
 
@@ -226,7 +263,12 @@ Note - Cases already being cared for in another hospice at admission was not tak
 Filtering ICD-10-CM diagnosis codes for heart failure:
 ```{r}
 
-NIS <- filter(NIS, I10_DX1 == "I0981" | I10_DX1 == "I110" | I10_DX1 == "I130" | I10_DX1 == "I132" | I10_DX1 == "I501" |  I10_DX1 == "I5020" | I10_DX1 == "I5021" | I10_DX1 == "I5022" | I10_DX1 == "I5023" | I10_DX1 == "I5030" | I10_DX1 == "I5031" | I10_DX1 == "I5032" | I10_DX1 == "I5033" | I10_DX1 == "I5040" | I10_DX1 == "I5041" | I10_DX1 == "I5042" | I10_DX1 == "I5043" | I10_DX1 == "I509" | I10_DX1 == "I501" | I10_DX1 == "I50810" | I10_DX1 == "I50811" |I10_DX1 == "I50812" |I10_DX1 == "I50813" |I10_DX1 == "I50814" |I10_DX1 == "I5082" | I10_DX1 == "I5083" |I10_DX1 == "I5084" |I10_DX1 == "I5089")
+NIS <- filter(NIS, I10_DX1 == "I0981" | I10_DX1 == "I110" | I10_DX1 == "I130" | I10_DX1 == "I132" | 
+I10_DX1 == "I501" |  I10_DX1 == "I5020" | I10_DX1 == "I5021" | I10_DX1 == "I5022" | I10_DX1 == "I5023" |
+I10_DX1 == "I5030" | I10_DX1 == "I5031" | I10_DX1 == "I5032" | I10_DX1 == "I5033" | I10_DX1 == "I5040" | 
+I10_DX1 == "I5041" | I10_DX1 == "I5042" | I10_DX1 == "I5043" | I10_DX1 == "I509" | I10_DX1 == "I501" | 
+I10_DX1 == "I50810" | I10_DX1 == "I50811" |I10_DX1 == "I50812" |I10_DX1 == "I50813" |I10_DX1 == "I50814"
+|I10_DX1 == "I5082" | I10_DX1 == "I5083" |I10_DX1 == "I5084" |I10_DX1 == "I5089")
 
 str(NIS)
 ```
@@ -251,7 +293,10 @@ Exluding Heart transplant cases:
 
 ```{r}
 
-NAS <- NIS %>% filter_all(any_vars(. == "02HA0QZ" |. == "02HA0RJ" | . == "02HA0RS" | . == "02HA0RZ" | . == "02HA3QZ" | . == "02HA3RJ" | . == "02HA3RS" | . == "02HA3RZ" | . == "02HA4QZ" | . == "02HA4RJ" | . == "02HA4RS" | . == "02HA4RZ" | . == "02YA0Z0" | . == "02YA0Z1" | . == "02YA0Z2" | . == "5A02116" | . == "5A02216"))
+NAS <- NIS %>% filter_all(any_vars(. == "02HA0QZ" |. == "02HA0RJ" | . == "02HA0RS" | . == "02HA0RZ" |
+. == "02HA3QZ" | . == "02HA3RJ" | . == "02HA3RS" | . == "02HA3RZ" | . == "02HA4QZ" | . == "02HA4RJ" |
+. == "02HA4RS" | . == "02HA4RZ" | . == "02YA0Z0" | . == "02YA0Z1" | . == "02YA0Z2" | . == "5A02116" |
+. == "5A02216"))
 
 
 NIS <- anti_join(NIS, NAS, by = "KEY_NIS")
@@ -286,7 +331,9 @@ NIS$APRDRG <- as.character(NIS$APRDRG)
 
 
 
-columns_fac = c("AWEEKEND", "DIED", "DISPUNIFORM", "DQTR", "ELECTIVE", "FEMALE", "HCUP_ED", "HOSP_DIVISION.x", "PAY1", "PL_NCHS", "RACE", "ZIPINC_QRTL", "HOSP_BEDSIZE", "HOSP_LOCTEACH", "HOSP_REGION", "H_CONTRL", "APRDRG_Risk_Mortality", "APRDRG_Severity")
+columns_fac = c("AWEEKEND", "DIED", "DISPUNIFORM", "DQTR", "ELECTIVE", "FEMALE", "HCUP_ED", "HOSP_DIVISION.x", 
+                "PAY1", "PL_NCHS", "RACE", "ZIPINC_QRTL", "HOSP_BEDSIZE", "HOSP_LOCTEACH", "HOSP_REGION", 
+                "H_CONTRL", "APRDRG_Risk_Mortality", "APRDRG_Severity")
 
 NIS[columns_fac] <- lapply(NIS[columns_fac], factor)
 
@@ -305,14 +352,22 @@ Making my table with my chosen variables. Some variables  were left out to make 
 library(table1)
 
 NIS$DIED <- factor(NIS$DIED, levels = c(-9, -8 , 0, 1), labels= c("Missing", "Invalid", "No", "Yes"))
-NIS$DISPUNIFORM <- factor(NIS$DISPUNIFORM, levels = c(-9, -8 , 1, 5, 6, 7, 20, 99), labels= c("Missing", "Invalid", "Routine", "Transfer to Hospital", "Home Care", "Against Medical Advice", "Died", "Unkown"))
+NIS$DISPUNIFORM <- factor(NIS$DISPUNIFORM, levels = c(-9, -8 , 1, 5, 6, 7, 20, 99), labels= c("Missing",
+"Invalid", "Routine", "Transfer to Hospital", "Home Care", "Against Medical Advice", "Died", "Unkown"))
 NIS$ELECTIVE <- factor(NIS$ELECTIVE, levels = c(-9, -8 , 0, 1), labels= c("Missing", "Invalid", "No", "Yes"))
-NIS$FEMALE <- factor(NIS$FEMALE, levels = c(-9, -8 , -6, 0, 1), labels= c("Missing", "Invalid", "Unkown", "Male", "Female"))
-NIS$RACE <- factor(NIS$RACE, levels = c(-9, -8 , 1, 2, 3, 4, 5, 6), labels= c("Missing", "Invalid", "White", "Black", "Hispanic", "Asian", "Native American", "Other"))
-NIS$ZIPINC_QRTL <- factor(NIS$ZIPINC_QRTL, levels = c(-9, -8 , 1, 2, 3, 4), labels= c("Missing", "Invalid", "First Quartile Income", "Second Quartile Income", "Third Quartile Income", "Fourth Quartile Income"))
-NIS$APRDRG_Risk_Mortality <- factor(NIS$APRDRG_Risk_Mortality, levels = c(1, 2, 3, 4), labels= c("Minor likelihood of dying", "Moderate likelihood of dying", "Major likelihood of dying", "Extreme likelihood of dying"))
-NIS$HOSP_LOCTEACH <- factor(NIS$HOSP_LOCTEACH, levels = c(1, 2 , 3), labels= c("Rural", "Urban nonteaching", "Urban teaching"))
-NIS$H_CONTRL <- factor(NIS$H_CONTRL, levels = c(1, 2 , 3), labels= c("Government", "Private, not-profit", "Private, invest-own"))
+NIS$FEMALE <- factor(NIS$FEMALE, levels = c(-9, -8 , -6, 0, 1), labels= c("Missing", "Invalid", "Unkown", 
+"Male", "Female"))
+NIS$RACE <- factor(NIS$RACE, levels = c(-9, -8 , 1, 2, 3, 4, 5, 6), labels= c("Missing", "Invalid", "White", 
+"Black", "Hispanic", "Asian", "Native American", "Other"))
+NIS$ZIPINC_QRTL <- factor(NIS$ZIPINC_QRTL, levels = c(-9, -8 , 1, 2, 3, 4), labels= c("Missing", "Invalid", 
+"First Quartile Income", "Second Quartile Income", "Third Quartile Income", "Fourth Quartile Income"))
+NIS$APRDRG_Risk_Mortality <- factor(NIS$APRDRG_Risk_Mortality, levels = c(1, 2, 3, 4), 
+labels= c("Minor likelihood of dying", "Moderate likelihood of dying", "Major likelihood of dying",
+          "Extreme likelihood of dying"))
+NIS$HOSP_LOCTEACH <- factor(NIS$HOSP_LOCTEACH, levels = c(1, 2 , 3), labels= c("Rural", "Urban nonteaching", 
+                                                                               "Urban teaching"))
+NIS$H_CONTRL <- factor(NIS$H_CONTRL, levels = c(1, 2 , 3), labels= c("Government", "Private, not-profit",
+                                                                     "Private, invest-own"))
 NIS$HOSP_BEDSIZE <- factor(NIS$HOSP_BEDSIZE, levels = c(1, 2 , 3), labels= c("Small", "Medium", "Large"))
 
 
@@ -331,15 +386,18 @@ label(NIS$LOS) <- "Length of Stay"
 Tables 1's !!
 ```{r}
 # Patients characteristics by Location and Teaching Status 
-table1(~AGE + DIED  + FEMALE  + I10_NDX + I10_NPR + RACE + ZIPINC_QRTL + APRDRG_Risk_Mortality | HOSP_LOCTEACH , data = NIS )
+table1(~AGE + DIED  + FEMALE  + I10_NDX + I10_NPR + RACE + ZIPINC_QRTL + APRDRG_Risk_Mortality |
+         HOSP_LOCTEACH , data = NIS )
 
 
 # Patients characteristics by hospital control 
-table1(~AGE + DIED  + FEMALE  + I10_NDX + I10_NPR + RACE + ZIPINC_QRTL + APRDRG_Risk_Mortality | H_CONTRL , data = NIS )
+table1(~AGE + DIED  + FEMALE  + I10_NDX + I10_NPR + RACE + ZIPINC_QRTL + APRDRG_Risk_Mortality |
+         H_CONTRL , data = NIS )
 
 
 # Patients characteristics by hospital control 
-table1(~AGE + DIED  + FEMALE  + I10_NDX + I10_NPR + RACE + ZIPINC_QRTL + APRDRG_Risk_Mortality | HOSP_BEDSIZE , data = NIS )
+table1(~AGE + DIED  + FEMALE  + I10_NDX + I10_NPR + RACE + ZIPINC_QRTL + APRDRG_Risk_Mortality | 
+         HOSP_BEDSIZE , data = NIS )
 
 ```
 
@@ -374,7 +432,9 @@ NIS <- NIS %>% filter(ZIPINC_QRTL != "Invalid")
 Dropping additional variables that will be no longer used foward:
 ```{r}
 
-Dropnis2 <- names(NIS) %in% c("I10_PR1", "I10_PR2", "I10_PR3", "I10_PR4", "I10_PR5", "I10_PR6", "I10_PR7", "I10_PR8", "I10_PR9", "I10_PR10", "I10_PR11", "I10_PR12", "I10_PR13", "I10_PR14", "I10_PR15", "MDC", "YEAR.x", "YEAR.y") 
+Dropnis2 <- names(NIS) %in% c("I10_PR1", "I10_PR2", "I10_PR3", "I10_PR4", "I10_PR5", "I10_PR6", "I10_PR7",
+"I10_PR8", "I10_PR9", "I10_PR10", "I10_PR11", "I10_PR12", "I10_PR13", "I10_PR14", "I10_PR15", "MDC",
+"YEAR.x", "YEAR.y") 
 
 NIS <- NIS[!Dropnis2]
 
@@ -589,9 +649,14 @@ str(rates_mon)
 ```
 
 
-The overall object is to compare the hospital metric with itself at the beginning and the end of the 1 year period. We are still working on the methodology for our project, so we could either go the control chart way or do a more regression related approach.
+The overall object is to compare the hospital metric with itself at the beginning and the end of the 1 year period. 
+We are still working on the methodology for our project, so we could either go the control chart way or do a more
+regression related approach.
 
-Making use of control charts within 1 hospital would not leave room for a multi-level component. However, if we opt for the regression approach, we could treat the data as longitudinal (which it is) and them the multilevel component will be related to time the rates were computed. My time "bins" (either months or quarters) could be treated as the random effect.
+Making use of control charts within 1 hospital would not leave room for a multi-level component. However, 
+if we opt for the regression approach, we could treat the data as longitudinal (which it is) and them the multilevel 
+component will be related to time the rates were computed. My time "bins" (either months or quarters)
+could be treated as the random effect.
 
 
 
