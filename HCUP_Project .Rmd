@@ -89,7 +89,7 @@ library(readr)
 
 info_NIS <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/FileSpecifications_NIS_2016_Core.TXT', 
                 fwf_positions(start = c(1, 5, 10, 37, 41, 71, 75, 79, 81, 86), 
-                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),  #use NA here for ragged (file ends abruptly when NA in last column)
+                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),
                 skip = 20) #skip = lines to skip till beggining reading the file
  
 
@@ -99,7 +99,8 @@ head(info_NIS)
 
 ```{r}
 # reading the first 50 lines only because I loaded the dataset already
-mini_NIS <- read_fwf('NIS_2016_Core.ASC', fwf_positions(start = info_NIS$X6, end = info_NIS$X7, col_names = info_NIS$X5), n_max = 50)   
+mini_NIS <- read_fwf('NIS_2016_Core.ASC', fwf_positions(start = info_NIS$X6, end = info_NIS$X7,
+                                                        col_names = info_NIS$X5), n_max = 50)   
 
 head(mini_NIS)
 ```
@@ -139,7 +140,7 @@ I will do the last method of loading for the NIS_2016_HOSPITAL file:
 
 info_HOSPITAL <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/FileSpecifications_NIS_2016_Hospital.TXT', 
                 fwf_positions(start = c(1, 5, 10, 37, 41, 71, 75, 79, 81, 86), 
-                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),  #use NA here for ragged (file ends abruptly when NA in last column)
+                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),
                 skip = 20) #skip = lines to skip till beggining reading the file
 
 
@@ -149,7 +150,8 @@ head(info_HOSPITAL)
 
 ```{r}
 # Loading the HOSPITAL dataset:
-HOSPITAL <- read_fwf('NIS_2016_Hospital.ASC', fwf_positions(start = info_HOSPITAL$X6, end = info_HOSPITAL$X7, col_names = info_HOSPITAL$X5))   
+HOSPITAL <- read_fwf('NIS_2016_Hospital.ASC', fwf_positions(start = info_HOSPITAL$X6, end = info_HOSPITAL$X7,
+                                                            col_names = info_HOSPITAL$X5))   
 
 head(HOSPITAL)
 ```
@@ -164,7 +166,7 @@ Same for the Severity file:
 
 info_SEVERITY <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/FileSpecifications_NIS_2016_Severity.TXT', 
                 fwf_positions(start = c(1, 5, 10, 37, 41, 71, 75, 79, 81, 86), 
-                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),  #use NA here for ragged (file ends abruptly when NA in last column)
+                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),
                 skip = 20) #skip = lines to skip till beggining reading the file
 
 
