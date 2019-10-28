@@ -12,8 +12,9 @@ This project will utilize the HCUP 2016 National Inpatient Sample (NIS). It is a
 (7,135,090 to be exact) and 98 variables in the core dataset. 
 
 Three supplemental files were also provided: Severity, Hospital and the Cost to Charge ratio. Those contains several
-hospital characteristics, mortality and severity of illness and risks adjustment to the prices charged by hospitals respectively. 
-Those additional files increase the number of variables by 14 (9 + 3 + 2) if the disregard the linking ones.
+hospital characteristics, mortality and severity of illness and risks adjustment to the prices charged by 
+hospitals respectively. Those additional files increase the number of variables by 14 (9 + 3 + 2) if the disregard
+the linking ones.
 
 With such numbers loading and manipulating the dataset could pose a challenge in itself. In R we opted to use the 
 "readr" package (a part of tidyverse) and thankfully this was enough for a current laptop to handle.
@@ -345,7 +346,8 @@ str(NIS)
 
 
 
-Making my table with my chosen variables. Some variables  were left out to make the table more readable (for example the DRG variable and the Hospital Identifier)
+Making my table with my chosen variables. Some variables  were left out to make the table more readable (for example
+the DRG variable and the Hospital Identifier)
 
 
 ```{r}
@@ -508,7 +510,8 @@ length(unique(rates_yr$HOSP_NIS.x))
 
 rates_yr$Rate_yr <- rates_yr$Rate_yr*100
 
-boxplot(rates_yr$Rate_yr, main = "Variability of IQI 16 in 2016 (Selected Hospitals)", xlab = "483 Total Hospitals (120 cases or more)", ylab = "Heart Failure Mortality Rate (by 100 = %)")
+boxplot(rates_yr$Rate_yr, main = "Variability of IQI 16 in 2016 (Selected Hospitals)", 
+xlab = "483 Total Hospitals (120 cases or more)", ylab = "Heart Failure Mortality Rate (by 100 = %)")
 
 ```
 
@@ -525,7 +528,8 @@ length(unique(NIS2$HOSP_NIS.x))
 
 ```{r}
 
-m0 <- lm (Rate_yr ~  AGE + as.factor(RACE) + as.factor(ZIPINC_QRTL) + as.factor(APRDRG_Risk_Mortality) + I10_DX1 + I10_NPR, data =NIS2)
+m0 <- lm (Rate_yr ~  AGE + as.factor(RACE) + as.factor(ZIPINC_QRTL) + as.factor(APRDRG_Risk_Mortality) + I10_DX1 
++ I10_NPR, data =NIS2)
 summary(m0)
 
 ```
@@ -534,7 +538,9 @@ summary(m0)
 library(lme4)
 library(lmerTest)
 
-m1 <- lmer(Rate_yr ~  AGE + (1 | HOSP_NIS.x) + as.factor(AWEEKEND)  + as.factor(H_CONTRL) + as.factor(HOSP_LOCTEACH) + as.factor(HOSP_BEDSIZE) + TOTAL_DISC + as.factor(RACE) + as.factor(ZIPINC_QRTL) + as.factor(APRDRG_Risk_Mortality), data =NIS2)
+m1 <- lmer(Rate_yr ~  AGE + (1 | HOSP_NIS.x) + as.factor(AWEEKEND)  + as.factor(H_CONTRL) + 
+as.factor(HOSP_LOCTEACH) + as.factor(HOSP_BEDSIZE) + TOTAL_DISC + as.factor(RACE) + as.factor(ZIPINC_QRTL) +
+as.factor(APRDRG_Risk_Mortality), data =NIS2)
 
 summary(m1)
 
@@ -588,14 +594,16 @@ range(ranks$Estimate)
 ```{r}
 #Numerator:
 #NIS_nr$DQTR <- as.numeric(NIS_nr$DQTR)
-num_dqtr <- NIS2 %>% filter(Indicator == 1) %>% group_by(HOSP_NIS.x, DQTR) %>% summarise(Numerator = length(Indicator)) %>% ungroup() %>% complete(HOSP_NIS.x, DQTR)
+num_dqtr <- NIS2 %>% filter(Indicator == 1) %>% group_by(HOSP_NIS.x, DQTR) %>% summarise(Numerator = length(Indicator)) %>% 
+ungroup() %>% complete(HOSP_NIS.x, DQTR)
 
 num_dqtr$Numerator[is.na(num_dqtr$Numerator)] <- 0
 
 num_dqtr <- num_dqtr[which(num_dqtr$DQTR != -9), ]
 
 #Denominator:
-den_dqtr <- NIS2 %>% group_by(HOSP_NIS.x, DQTR) %>% summarise(Denominator = length(Indicator)) %>% ungroup() %>% complete(HOSP_NIS.x, DQTR)
+den_dqtr <- NIS2 %>% group_by(HOSP_NIS.x, DQTR) %>% summarise(Denominator = length(Indicator)) %>% ungroup() %>% 
+complete(HOSP_NIS.x, DQTR)
 den_dqtr <- den_dqtr[which(den_dqtr$DQTR != -9), ]
 
 
@@ -623,13 +631,15 @@ Grouping by hospital and month of admission:
 
 #Numerator:
 NIS2$AMONTH <- as.numeric(NIS2$AMONTH)
-num_mon <- NIS2 %>% filter(Indicator == 1) %>% group_by(HOSP_NIS.x, AMONTH) %>% summarise(Numerator = length(Indicator)) %>% ungroup() %>% complete(HOSP_NIS.x, AMONTH)
+num_mon <- NIS2 %>% filter(Indicator == 1) %>% group_by(HOSP_NIS.x, AMONTH) %>% summarise(Numerator = length(Indicator)) %>%
+ungroup() %>% complete(HOSP_NIS.x, AMONTH)
  
 num_mon$Numerator[is.na(num_mon$Numerator)] <- 0
    
  
 #Denominator:
-den_mon <- NIS2 %>% group_by(HOSP_NIS.x, AMONTH) %>% summarise(Denominator = length(Indicator)) %>% ungroup() %>% complete(HOSP_NIS.x, AMONTH)
+den_mon <- NIS2 %>% group_by(HOSP_NIS.x, AMONTH) %>% summarise(Denominator = length(Indicator)) %>% ungroup() %>% 
+complete(HOSP_NIS.x, AMONTH)
 den_mon <- den_mon[which(den_mon$AMONTH != -9), ]
  
  
@@ -700,7 +710,8 @@ confint(m3, level = 0.95)
 
 ```{r}
 
-plot(hosp1$AMONTH.x, hosp1$Rate_mon, xlab="Month of the Year", ylab="Mortality Rate", main="Regression Line with 95% CI Bands")
+plot(hosp1$AMONTH.x, hosp1$Rate_mon, xlab="Month of the Year", ylab="Mortality Rate", 
+main="Regression Line with 95% CI Bands")
 abline(m2, col="blue")
 ci_x = seq(1, 12,by = 1)
 conf_interval <- predict(m2, newdata=data.frame(x=ci_x), interval="confidence",
