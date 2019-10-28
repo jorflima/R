@@ -240,7 +240,8 @@ str(NIS)
 ```
 
 
-We will base our analysis on one of the Agency for Healthcare Research and Quality (ARQH) indicators. To be more specific, the Inpatient Heart Failure Mortality Rate Quality Indicator (IQI 16). More at:
+We will base our analysis on one of the Agency for Healthcare Research and Quality (ARQH) indicators. 
+To be more specific, the Inpatient Heart Failure Mortality Rate Quality Indicator (IQI 16). More at:
 
 https://www.qualityindicators.ahrq.gov/Downloads/Modules/IQI/V2018/TechSpecs/IQI_16_Heart_Failure_Mortality_Rate.pdf
 
@@ -260,7 +261,8 @@ Cases where pregnancy, childbirth, and puerperium are present
 Any cases where discharge, gender, age, quarter of discharge, year or principal diagnosis data are missing
 
 
-Note - Cases already being cared for in another hospice at admission was not taken into account because it was discontinued in the NIS from 2012 and on
+Note - Cases already being cared for in another hospice at admission was not taken into account because it was 
+discontinued in the NIS from 2012 and on
 
 
 Filtering ICD-10-CM diagnosis codes for heart failure:
