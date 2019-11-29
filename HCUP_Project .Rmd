@@ -72,7 +72,7 @@ TRAN_IN = c(488,489), TRAN_OUT = c(490,491), YEAR = c(492,495), ZIPINC_QRTL = c(
 
 
 str(NIS)
-  head(NIS, 30)
+  str(NIS, 30)
 
 ```
 
@@ -93,7 +93,7 @@ info_NIS <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/Fil
                 skip = 20) #skip = lines to skip till beggining reading the file
  
 
-head(info_NIS)
+str(info_NIS)
 ```
 
 
@@ -102,7 +102,7 @@ head(info_NIS)
 mini_NIS <- read_fwf('NIS_2016_Core.ASC', fwf_positions(start = info_NIS$X6, end = info_NIS$X7,
                                                         col_names = info_NIS$X5), n_max = 50)   
 
-head(mini_NIS)
+str(mini_NIS)
 ```
 
 # Variable Selection:
@@ -144,7 +144,7 @@ info_HOSPITAL <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stat
                 skip = 20) #skip = lines to skip till beggining reading the file
 
 
-head(info_HOSPITAL)
+str(info_HOSPITAL)
 ```
 
 
@@ -153,7 +153,7 @@ head(info_HOSPITAL)
 HOSPITAL <- read_fwf('NIS_2016_Hospital.ASC', fwf_positions(start = info_HOSPITAL$X6, end = info_HOSPITAL$X7,
                                                             col_names = info_HOSPITAL$X5))   
 
-head(HOSPITAL)
+str(HOSPITAL)
 ```
 
 
@@ -180,7 +180,7 @@ info_SEVERITY
 SEVERITY <- read_fwf('NIS_2016_Severity.ASC', fwf_positions(start = info_SEVERITY$X6, end = info_SEVERITY$X7,
                                                             col_names = info_SEVERITY$X5))   
 
-head(SEVERITY)
+str(SEVERITY)
 ```
 
 
@@ -190,7 +190,7 @@ The Cost to Charge file is a "normal" csv file and thus have no such mapping:
 #Loadinf CCR file:
 CCR <- read.csv("cc2016NIS.csv")
 
-head(CCR)
+str(CCR)
 ```
 
 
@@ -579,7 +579,7 @@ reSims$LB <- reSims$mean - 1.96*reSims$sd
 reSims$UB <- reSims$mean + 1.96*reSims$sd
 reSims <- reSims[,c(-1, -3, -5)]
 names(reSims) <- c("Hosp_ID", "Estimate", "SD", "Lower Bound", "Upper Bound")
-head(reSims, 30)
+str(reSims)
 
 #pctER = percentile rank
 #ER = normal rank 
@@ -587,7 +587,7 @@ ranks <- expectedRank(m1)
 ranks <- ranks[,c(-1, -5, -7)]
 names(ranks) <- c("Hosp_ID", "Term", "Estimate", "Rank")
 #ranks <- ranks[order(ranks$Rank) , ]
-head(ranks, 30)
+str(ranks)
 
 length(unique(NIS2$HOSP_NIS.x))
 
