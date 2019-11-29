@@ -1,0 +1,553 @@
+---
+title: "CKD_Project"
+author: "Jorge Lima"
+date: "11/09/2019"
+output: html_document
+---
+
+# Wekk 5 & 6: End Stage Renal Disease
+
+In this exercise we will use the HCUP 2016 National Inpatient Sample (NIS - 2016). It is a dataset with over 7 million records and 98 variables derived from billing data. It contains hospital data, costs, diagnosis and procedure information from individuals covered by Medicare, Medicaid, private insurance, and the uninsured.
+
+More can be found at: https://www.hcup-us.ahrq.gov/db/nation/nis/NIS_Introduction_2016.jsp
+
+Our objective is to first find which patients have Chronic Renal Disease (CKD), label them correctly, enrich the dataset with comorbidity measures and finally fit a classifier that will correctly predict in which stage each patient is in.  
+
+
+#Part 1 - Data Wrangling
+
+## Loading the data:
+
+
+### Setting the working directory:
+```{r setup}
+knitr::opts_knit$set(root.dir = "/media/jorge/A4BACE90BACE5E84/Extra_Data/NIS_2016")
+```
+
+
+Loading the dataset directly with a fwf command is possible but can be cumbersome. A second option is to use the file specification page on the HCUP site itself to load on the variables names and positions. After that, I will inform the read_fwf command automatically with the values contained in the object generated from the internet page.
+
+
+### Reading the dataset parameters using the webpage information:
+
+```{r}
+library(readr)
+
+#Making the first object that will hold the file information:
+
+info_NIS <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/FileSpecifications_NIS_2016_Core.TXT', 
+                fwf_positions(start = c(1, 5, 10, 37, 41, 71, 75, 79, 81, 86), 
+                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),
+                skip = 20) #skip = lines to skip till beggining reading the file
+ 
+
+str(info_NIS)
+```
+
+### Loading the file using the previous object named "info_NIS":
+
+
+```{r}
+NIS <- read_fwf('NIS_2016_Core.ASC', fwf_positions(start = info_NIS$X6, end = info_NIS$X7,
+                                                        col_names = info_NIS$X5))   
+
+str(NIS)
+```
+
+
+### Initial Variable Selection:
+
+
+CKD is a clinical condition, thus I am not really interested in patient's procedures or trauma codes. Also I will drop DRG and their respective MDC because both are classificaton algorithms and thus would constitute "data leakage". By the same tokem hospital characteristics (location and type) and the time in the year has no bearing on the condition and will be dropped as well.
+
+I will only consider adults (Age greater or equal to 18 years).
+
+```{r}
+
+drop_NIS <- names(NIS) %in% c("AMONTH", "DQTR", "DRG", "HOSP_DIVISION", "HOSP_NIS", "I10_ECAUSE1","I10_ECAUSE2", "I10_ECAUSE3", "I10_ECAUSE4", "I10_NECAUSE","MDC_NoPOA", "DXVER", "HCUP_ED", "NIS_STRATUM", "I10_PR1", "I10_PR2", "I10_PR3", "I10_PR4", "I10_PR5", "I10_PR6", "I10_PR7", "I10_PR8", "I10_PR9","I10_PR10", "I10_PR11", "I10_PR12", "I10_PR13", "I10_PR14", "I10_PR15", "MDC", "YEAR", "DISCWT", "DRGVER", "DRG_NoPOA", "DXVER", "AGE_NEONATE","PRDAY1", "PRDAY2", "PRDAY3", "PRDAY4", "PRDAY5", "PRDAY6", "PRDAY7", "PRDAY8", "PRDAY9", "PRDAY10", "PRDAY11", "PRDAY12", "PRDAY13", "PRDAY14", "PRDAY15", "PRVER") 
+NIS <- NIS[!drop_NIS]
+
+NIS <- NIS[NIS$AGE >= 18, ]
+
+
+str(NIS)
+```
+
+
+Now that I've doen the first round of data wrangling, I am interested only in cases where Chronic Kidney Disease (CKD) is present. How to make the correct selection of patients?
+
+I will use the codes listed in the Clinical Classifications Software (CCS) from the HCUP site under the CKD label.
+
+More can be found at: https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccs.jsp 
+
+Below are the correspondend ICD codes that I will use to filter any row that contain any of them in any of the columns of the dataset:
+
+
+```{r}
+library(dplyr)
+
+ckd <- c('D631', 'E0822', 'E0922', 'E1022', 'E1122', 'E1322', 'I120', 'I129', 'I130', 'I1310', 'I1311', 'I132', 'N181', 'N182', 'N183', 'N184', 'N185', 'N186', 'N189', 'R880', 'Z4901', 'Z4902', 'Z4931', 'Z4932')
+
+NIS <- NIS %>% filter_at(vars(contains("I10_DX")), any_vars(. %in% ckd))
+
+```
+
+Ater this second row of filtering, I am down from 7.1 million rows and 98 variables to 0.97 million rows and 47 variables.
+
+Now I will label each row according to its stage using its respective ICD 10 CM code. Any rows that do not contain any specific mention of Stage will be labeled as "Unknown".
+
+| ICD    |    Description                   
+|--------|-------------------------------------|
+| N181   | Chronic kidney disease, stage 1     |
+| N182   | Chronic kidney disease, stage 2     | 
+| N183   | Chronic kidney disease, stage 3     |
+| N184   | Chronic kidney disease, stage 4     |
+| N185   | Chronic kidney disease, stage 5     | 
+| N186   | Chronic kidney disease, stage 6     |
+
+
+Below are the references of Glomerular Filtration Rate (GFR) and their respective Stage:
+
+
+| Stage  |  Filtration Rate | Description                   |
+|--------|------------------|-------------------------------|
+|   1    |        >90       |   Normal and High             |
+|   2    |        60-89     |   Mild Reduction              |
+|   3    |        45-59     |   Mild-Moderate Reduction     |
+|   4    |        30-44     |   Moderate-Severe Reduction   |
+|   5    |        15-29     |   Severe Reduction            |
+|   6    |        <15       |   End Stage Renal Disease     |
+
+
+
+Note: I spent considerable time trying to make the code below more "elegant". I tried different commands and packages but could not make it more simple than this. I am accepting any suggestions on how to improve on it! 
+
+
+```{r}
+
+NIS <- NIS %>% mutate(Stage = case_when(I10_DX1 == "N181" | I10_DX2 == "N181" | I10_DX3 == "N181" | I10_DX4 == "N181" | I10_DX5 == "N181" | I10_DX6 == "N181" | I10_DX7 == "N181" | I10_DX8 == "N181" | I10_DX9 == "N181"| I10_DX10 == "N181"| I10_DX11 == "N181"| I10_DX12 == "N181"| I10_DX13 == "N181" | I10_DX14 == "N181"| I10_DX15 == "N181" | I10_DX16 == "N181"| I10_DX17 == "N181" | I10_DX18 == "N181"| I10_DX19 == "N181"| I10_DX20 == "N181" ~ "Stage1",
+
+
+I10_DX1 == "N182" | I10_DX2 == "N182" | I10_DX3 == "N182" | I10_DX4 == "N182" | I10_DX5 == "N182" | I10_DX6 == "N182" | I10_DX7 == "N182" | I10_DX8 == "N182" | I10_DX9 == "N182"| I10_DX10 == "N182"| I10_DX11 == "N182"| I10_DX12 == "N182"| I10_DX13 == "N182" | I10_DX14 == "N182"| I10_DX15 == "N182" | I10_DX16 == "N182"| I10_DX17 == "N182" | I10_DX18 == "N182"| I10_DX19 == "N182"| I10_DX20 == "N182" ~ "Stage2",
+
+I10_DX1 == "N183" | I10_DX2 == "N183" | I10_DX3 == "N183" | I10_DX4 == "N183" | I10_DX5 == "N183" | I10_DX6 == "N183" | I10_DX7 == "N183" | I10_DX8 == "N183" | I10_DX9 == "N183"| I10_DX10 == "N183"| I10_DX11 == "N183"| I10_DX12 == "N183"| I10_DX13 == "N183" | I10_DX14 == "N183"| I10_DX15 == "N183" | I10_DX16 == "N183"| I10_DX17 == "N183" | I10_DX18 == "N183"| I10_DX19 == "N183"| I10_DX20 == "N183" ~ "Stage3",
+
+
+I10_DX1 == "N184" | I10_DX2 == "N184" | I10_DX3== "N184" | I10_DX4 == "N184" | I10_DX5 == "N184" | I10_DX6 == "N184" | I10_DX7 == "N184" | I10_DX8 == "N184" | I10_DX9 == "N184"| I10_DX10 == "N184"| I10_DX11 == "N184"| I10_DX12 == "N184"| I10_DX13 == "N184" | I10_DX14 == "N184"| I10_DX15 == "N184" | I10_DX16 == "N184"| I10_DX17 == "N184" | I10_DX18 == "N184"| I10_DX19 == "N184"| I10_DX20 == "N184" ~ "Stage4",
+
+
+I10_DX1 == "N185" | I10_DX2 == "N185" | I10_DX3 == "N185" | I10_DX4 == "N185" | I10_DX5 == "N185" | I10_DX6 == "N185" | I10_DX7 == "N185" | I10_DX8 == "N185" | I10_DX9 == "N185"| I10_DX10 == "N185"| I10_DX11 == "N185"| I10_DX12 == "N185"| I10_DX13 == "N185" | I10_DX14 == "N185"| I10_DX15 == "N185" | I10_DX16 == "N185"| I10_DX17 == "N185" | I10_DX18 == "N185"| I10_DX19 == "N185"| I10_DX20 == "N185" ~ "Stage5",
+
+
+I10_DX1 == "N186" | I10_DX2 == "N186" | I10_DX3 == "N186"| I10_DX4 == "N186" | I10_DX5 == "N186" | I10_DX6 == "N186" | I10_DX7 == "N186" | I10_DX8 == "N186" | I10_DX9 == "N186"| I10_DX10 == "N186"| I10_DX11 == "N186"| I10_DX12 == "N186"| I10_DX13 == "N186" | I10_DX14 == "N186"| I10_DX15 == "N186" | I10_DX16 == "N186"| I10_DX17 == "N186" | I10_DX18 == "N186"| I10_DX19 == "N186"| I10_DX20 == "N186" ~ "Stage6",
+
+TRUE ~ "Unknown"))
+
+table(NIS$Stage)
+```
+
+Stage 1 is the least frequent type of CKD (its under notified on  medical records). The number of Unknowns was the second biggest class at 35% but this is not surprising since the dataset comes from administrative/billing (not academic / medical or research) records.  
+
+
+
+
+### Measures of Comorbidity
+
+In order to enrich the data I will add to the variable columns two comorbidity measures: Elixhauser and Charlson indexes. The basic idea behind both is that by using the information contained in the secondary ICD codes I can have an idea on how sick patients are. Naturally, each comorbidity does not act in the same way on the health status of a person and hence are assigned different weights. From the sum of those weights we get the final score.
+
+In other words, patients with the same disease coming into the hospital (primary ICD code) can have very different outcomes (readmission rates, mortality, costs) based on their comorbidity scores. This concept could translate well into the classification of CKD. 
+
+More can be found about at: 
+
+https://www.sciencedirect.com/topics/medicine-and-dentistry/charlson-comorbidity-index
+
+http://mchp-appserv.cpe.umanitoba.ca/viewConcept.php?printer=Y&conceptID=1436
+
+
+
+The first step is to select the ID and the all ICD codes into a new object:
+
+```{r}
+mini_NIS <- NIS %>% select("KEY_NIS", starts_with("I10_DX"))
+str(mini_NIS)
+```
+
+
+After that, I put all the ICD information into one column in order to be albe to calculate the scores:
+
+
+```{r}
+library(tidyr)
+mini_NIS <- gather(mini_NIS, COLUMN, ICD, I10_DX1:I10_DX30, na.rm = TRUE, convert = FALSE)
+
+str(mini_NIS)
+```
+
+
+Finally, I can pass my data to the comorbity grouper and calculate both my Elixhauser and Charlson indexes
+
+
+Calculating the Elixhauser scores:
+
+```{r}
+library(comorbidity)
+
+elix <- comorbidity(x = mini_NIS, id = "KEY_NIS", code = "ICD", score = "elixhauser", icd = "icd10", factorise = FALSE, assign0 = TRUE)
+
+#Using the formula used by AHRQ for the Elixhauser score:
+elix <- elix %>% select("KEY_NIS", "wscore_ahrq")
+
+str(elix)
+```
+
+Calculating the Charlson scores:
+
+```{r}
+charl <- comorbidity(x = mini_NIS, id = "KEY_NIS", code = "ICD" , score = "charlson", factorise = FALSE, assign0 = FALSE)
+
+#Selecting the weighted Charlson scores:
+charl <- charl %>% select("KEY_NIS", "wscore")
+
+str(charl)
+```
+
+
+Merging back my new variables into the main dataset:
+
+```{r}
+NIS <- inner_join(NIS, elix, by = "KEY_NIS")
+
+NIS <- inner_join(NIS, charl, by = "KEY_NIS")
+
+str(NIS)
+```
+
+
+### Dealing with coding issues in the HCUP database:
+
+```{r}
+
+NIS$DIED[NIS$DIED == -8 | NIS$DIED == -9] <- NA
+NIS$DIED <- as.factor(NIS$DIED)
+
+NIS$ELECTIVE[NIS$ELECTIVE == -8 | NIS$ELECTIVE == -9] <- NA
+NIS$ELECTIVE <- as.factor(NIS$ELECTIVE)
+
+NIS$LOS[NIS$LOS == -6666 | NIS$LOS == -9999] <- NA
+
+NIS$TOTCHG[NIS$TOTCHG == -999999999 |NIS$TOTCHG == -666666666] <- NA
+
+NIS$ZIPINC_QRTL[NIS$ZIPINC_QRTL == -8 | NIS$ZIPINC_QRTL == -9] <- NA
+NIS$ZIPINC_QRTL <- as.factor(NIS$ZIPINC_QRTL)
+
+NIS$PAY1[NIS$PAY1 == -8 | NIS$PAY1 == -9] <- NA
+NIS$PAY1 <- as.factor(NIS$PAY1) 
+
+NIS$RACE[NIS$RACE == -8 | NIS$RACE == -9] <- NA
+NIS$RACE <- as.factor(NIS$RACE)
+
+```
+
+
+### Final Variable Selection
+
+Selecting the variables that are going to be fitted into the final models based on medical / public health literature. Here is the reasoning followed by a boxplot for visualization: 
+
+Age: Older patients tend to be of a later CKD Stage
+
+
+```{r}
+boxplot(AGE~Stage,NIS)
+```
+
+
+Died: later CKD Stage is correlated with an increase of mortality rates
+
+```{r}
+table(NIS$DIED, NIS$Stage)
+
+```
+
+
+Elective: later CKD Stage might be linked with more urgent admissions
+
+```{r}
+barplot(table(NIS$ELECTIVE,  NIS$Stage))
+```
+
+
+LOS: Increased length of stay is associated with poor healh / more severe cases
+
+```{r}
+boxplot(LOS~Stage,NIS)
+```
+
+
+Pay1: Different payers can be assoicated with populations that are sicker or healthier on average (Medicaid vs Private Insurer for example).
+
+```{r}
+barplot(table(NIS$PAY1,  NIS$Stage))
+```
+
+
+Race: Determinants of health include race, so certain races might be associated with less prevention care and hence a higher Stage
+
+```{r}
+barplot(table(NIS$RACE,  NIS$Stage))
+```
+
+
+TOTCHG: Although most of the treatment is ambulaory. Later Stages of CKD might be associated with higher costs in hospital stays
+
+```{r}
+boxplot(TOTCHG ~ Stage, NIS)
+```
+
+ZIPINC_QRTL: This variable looks at the median household income for a patient corresponding ZIP Code. Higher income usually corresponds with better health and prevention.  
+
+```{r}
+barplot(table(NIS$ZIPINC_QRTL,  NIS$Stage))
+```
+
+wscore_ahrq: Higher comorbidity burden might be associated with a higher Stage of CKD
+
+```{r}
+boxplot(wscore_ahrq ~ Stage, NIS)
+```
+
+
+wscore: Same reasoning for wscore_ahrq.
+
+```{r}
+boxplot(wscore ~ Stage, NIS)
+```
+
+
+ Making a new object with the chosen variables and the label:
+
+```{r}
+#Dataset used in all machine learning:
+
+NIS2 <- NIS %>% select("AGE", "DIED", "ELECTIVE", "LOS", "PAY1", "RACE", "TOTCHG", "ZIPINC_QRTL", "wscore_ahrq", "wscore" , "Stage")
+
+rm(NIS, info_NIS)
+```
+
+
+### Dealing with missing data:
+
+I cannot fit a random forest model with the package randomForest while I have missing data: 
+
+```{r}
+library(VIM)
+mice_plot <- aggr(NIS2, col=c('navyblue','yellow'),
+                    numbers=TRUE, sortVars=TRUE,
+                    labels=names(NIS2), cex.axis=.7,
+                    gap=3, ylab=c("Missing data","Pattern"))
+```
+
+
+We can see that RACE, TOTCHG and ZIPINC_QRTL are the varibles with most missing data (between 1.6-3.6%).
+
+I will use MICE (Multiple Imputation by Chained Equations) to impute the missing values:
+
+```{r}
+library(mice)
+init = mice(NIS2, maxit=0) 
+meth = init$method
+predM = init$predictorMatrix
+```
+
+```{r}
+#Stage will not be used for imputation
+predM[, c("Stage")]=0
+```
+
+```{r}
+#Specifying the method for each type of variable:
+meth[c("LOS", "TOTCHG")]="norm" 
+meth[c("ELECTIVE", "DIED")]="logreg" 
+meth[c("RACE", "ZIPINC_QRTL", "PAY1")]="polyreg"
+```
+
+
+```{r}
+#Calling the impuation function:
+begin <- Sys.time()
+
+imputed = mice(NIS2, method=meth, predictorMatrix=predM, m=1, seed = 42)
+
+end <- Sys.time()
+
+print(end-begin)
+```
+
+```{r}
+NIS_imputed <- complete(imputed)
+write.csv(NIS_imputed, file = "NIS_imputed.csv")
+```
+
+
+```{r}
+#Verifying the number of missing values:
+sapply(NIS_imputed, function(x) sum(is.na(x)))
+```
+
+I have no more missing values in my dataset
+
+
+# Part 2: Machine Learning
+
+### I tried to fit the whole dataset but was unable to. It was too big for my machine. I keep getting the "cannot fit a matrix of XXXGb into memory" error. 
+
+### To circunvent this I first tried to work with a simpler model (lower number for "ntrees" and "mtry" for example). That helped a little because now I could run the model. However, it took between 4 and 11 hours to finish and after a few tries it was still not giving me the classification output for all Stages.
+
+### As a last resort I used a 20% sample of my dataset. That worked but it is less than ideal. I will try to run the same models into H2o in the hopes it will deal better with data this size. More on that on the next exercise (Weeks 7 & 8). I named this object NIS3.
+
+
+Getting my 20% sample for the whole dataset:
+
+```{r}
+set.seed(42)
+NIS3 <- sample(1:nrow(NIS_imputed), 194783, replace = F)
+NIS3 <- NIS_imputed[NIS3, ]
+
+rm(NIS2, NIS_imputed)
+```
+
+
+
+### Splitting the data on my Train and Test sets:
+
+```{r}
+library(caTools)
+
+# Splitting the data
+split = sample.split(NIS3$Stage, SplitRatio = 0.75)
+
+```
+
+
+```{r}
+# Creating the training and testing sets:
+set.seed(42)
+Train <-  subset(NIS3, split == TRUE)
+Test <-  subset(NIS3, split == FALSE)
+
+rm(charl, elix, mini_NIS, NIS3)
+rm(ckd, drop_NIS, split)
+```
+
+```{r}
+table(Train$Stage)
+```
+
+
+```{r}
+table(Test$Stage)
+```
+
+I confirmed that the two sets kept their proportion (75 and 25%) not only between them but among the classes as well.
+
+
+
+
+
+## Machine Learning: Naive Bayes
+
+I will start by fitting a Naive Bayes classifier using the package e1071:
+
+
+```{r}
+library(e1071)
+
+set.seed(42)
+#Creating the Naive Bayes model:
+
+nb_model = naiveBayes(as.factor(Stage) ~ ., data=Train)
+
+nb_model
+
+```
+
+
+Using the test set to make the predicitions:
+
+```{r}
+set.seed(42)
+modelPred <- predict(nb_model, Test)
+
+cMatrix <- table(modelPred, Test$Stage)
+
+```
+
+Getting the results from the model:
+
+```{r}
+library(caret)
+plot(cMatrix)
+```
+
+Greater areas in the graphic correspond to better predictions
+
+```{r}
+confusionMatrix(cMatrix)
+```
+
+Results were not very good with an accuracy of 0.4. Only Stage 3 (and perhaps Stage 6) has a good balanced between Sensitivity and Specificity.
+
+
+
+## Machine Learning: Random Forest
+
+Now I will fit a Decision Tree classifier using Random Forests with the package randomForest using the model defaults:
+
+
+```{r}
+library(randomForest)
+library(caret)
+set.seed(42)
+  
+begin <- Sys.time()
+rf_model <- randomForest(as.factor(Stage) ~ . , data = Train, importance = TRUE)
+
+end <- Sys.time()
+print(end-begin)
+
+print(rf_model)
+```
+
+Similar to the Naive Bayes classifier I get good results for Stage 3 and Stage 6
+
+
+Those are variables in order of importance:
+```{r}
+round(importance(rf_model), 2)
+```
+
+Age and Race were important variables in the model.
+
+
+Performing predicitons on the Test set:
+
+```{r}
+pred_rf <- predict(rf_model, Test)
+
+cMatrix_rf <- table(pred_rf, Test$Stage)
+
+```
+
+Getting the results of the model:
+```{r}
+plot(cMatrix_rf)
+```
+
+```{r}
+confusionMatrix(cMatrix_rf)
+```
+
+Random forest performed in a similar way than the Naive Bayes model with a small accuracy improvment of 1.29% but with a better balance of Sensitivity and Specificity for Stage 3, Stage 6 and Unknown. On the next exercise I will run those models again using the full dataset and perform a grid search on the random forest to see if I can improve on those results.
+
+
+
+
