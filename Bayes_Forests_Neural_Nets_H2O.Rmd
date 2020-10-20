@@ -1,12 +1,11 @@
 ---
 title: "H2o - Random Forest"
 author: "Jorge Lima"
-date: "11/14/2019"
 output: html_document
 ---
 
 
-# Wekk 7 & 8: End Stage Renal Disease - H2o
+# End Stage Renal Disease - H2o
 
 On the previous exercise (weeks 5 & 6) I used a 20% sample of my data because of memory allocation problems. In this final project I will try to use the full dataset named "NIS_imputed" to fit three models: Naive Bayes, Random Forest and Deep Learning. I will use the H2o library / workframe.
 
