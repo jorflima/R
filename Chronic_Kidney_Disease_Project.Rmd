@@ -4,7 +4,7 @@ author: "Jorge Lima"
 output: html_document
 ---
 
-# End Stage Renal Disease
+# End Stage Renal Disease - Data Preparation
 
 In this exercise we will use the HCUP 2016 National Inpatient Sample (NIS - 2016). It is a dataset with over 7 million records and 98 variables derived from billing data. It contains hospital data, costs, diagnosis and procedure information from individuals covered by Medicare, Medicaid, private insurance, and the uninsured.
 
