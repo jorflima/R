@@ -231,6 +231,3 @@ Shtting rhe H2o cluster down:
 ```{r}
 h2o.shutdown(prompt=FALSE)
 ```
-
-
-Suggestion from Prof Ramesh: ONE VS ALL approach
