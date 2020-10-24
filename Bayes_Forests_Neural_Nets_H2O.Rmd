@@ -230,7 +230,7 @@ mean(best_model_predictions2$predict == test$Stage)
 This is the best model with a slightly higher accuracy than the result using grid search with random forest. 
 
 Generally speaking though this dataset was not very informative regarding classification of CKD stages.
-As seen before in the past exercise only Stage 3 was reliably categorized by the algorithms.
+As seen before in the past project only Stage 3 was reliably categorized by the algorithms.
 
 
 
