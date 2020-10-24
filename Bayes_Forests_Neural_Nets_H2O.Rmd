@@ -25,7 +25,7 @@ h2o.init(nthreads=-1, max_mem_size = "8G")
 h2o.removeAll() 
 ```
 
-Loading my dataset "NIS_imputed" generated on the previous exercise:
+Loading my dataset "NIS_imputed" generated on the previous project:
 
 ```{r}
 df <- h2o.importFile(path = normalizePath("/home/jorge/Documents/Dartmouth_Fall_2019/Independent_Study_Prof_Ramesh/Renal_Class_HCUP/NIS_imputed.csv"))
@@ -60,13 +60,16 @@ bayes_m <- h2o.naiveBayes(x = 2:11, y=12, train, balance_classes = F, laplace = 
 h2o.performance(bayes_m, test)
 ```
 
-My overall Error was 0.613 for the Test set which gives me an accuracy of just 38.7% which was lower than the previous exercise using the e1071 package.
+My overall Error was 0.613 for the Test set which gives me an accuracy of just 38.7% which was lower 
+than the previous exercise using the e1071 package.
 
 
 
 ### Fitting a Random Forest model:
 
-H2o handled the bigger amount of data much better than base R with the randomForest package. This is the reason I am able know to experiment further and use cartesian grid search with varying tree depths (5, 7 and 10) and number of trees (base of 50, then 100 and finally 200) so find the best fit:
+H2o handled the bigger amount of data much better than base R with the randomForest package. 
+This is the reason I am able know to experiment further and use cartesian grid search with varying 
+tree depths (5, 7 and 10) and number of trees (base of 50, then 100 and finally 200) so find the best fit:
 
 ```{r echo = T, results = 'hide'}
 param = list(ntrees = c(50, 100, 200), max_depth = c(5, 7, 10), seed = 42)
@@ -77,7 +80,8 @@ Getting the metrics:
 ```{r}
 summary(grid)
 ```
-This is sorted by logloss, I can change the metric. Lets use accuracy instead so it is more easily comparable to the models in the previous exercise:
+This is sorted by logloss, I can change the metric. Lets use accuracy instead so it is more easily 
+comparable to the models in the previous exercise:
 
 ```{r}
 rf_sorted <- h2o.getGrid(grid_id = "grid1", sort_by = "accuracy", decreasing = T)
@@ -92,7 +96,11 @@ best_model <- h2o.getModel(rf_sorted@model_ids[[1]])
 summary(best_model)
 ```
 
-So the model chosen had a max depth of 10, used 100 trees and had an accuracy of approximately 42.85% which is currently the best model. The second best was random forest using base parameters from the last exercise. This was considerably better than the Naive Bayes approach. Variables that were important are Age and Race which was consistent with the previous exercise. The news here is that wscore_ahrq was placed second and was not valued high before. 
+So the model chosen had a max depth of 10, used 100 trees and had an accuracy of approximately 42.85% 
+which is currently the best model. The second best was random forest using base parameters from the last project. 
+This was considerably better than the Naive Bayes approach. Variables that were important are Age and Race which
+was consistent with the previous exercise. The news here is that wscore_ahrq was placed second and was 
+not valued high before. 
 
 
 
@@ -152,7 +160,8 @@ Importance of variables:
 head(as.data.frame(h2o.varimp(m1)))
 ```
 
-The importance of variables changed here. AGE is still important, but lenght of stay (LOS) and costs (TOTCHG) climbed up the ladder.
+The importance of variables changed here. AGE is still important, but lenght of stay (LOS) and 
+costs (TOTCHG) climbed up the ladder.
 
 
 Applying the model in my Test set:
@@ -166,7 +175,8 @@ I got a smilar accuracy using my test set.
 
 
 
-I will now try to find the best model by using grid search with different hidden layer sizes and neuron numbers, learning rates, imput layer dropout ratio (to improve generalization) and learning rate step decay (rate_annealing).
+I will now try to find the best model by using grid search with different hidden layer sizes and neuron numbers,
+learning rates, imput layer dropout ratio (to improve generalization) and learning rate step decay (rate_annealing).
 
 I will train the model for 20 epochs and stop when my missclassification do not improve by more than 1% after 2 scoring events.
 
@@ -201,7 +211,8 @@ summary(best_model2)
 plot(best_model2)
 ```
 
-I managed to improve my accuracy a little using grid search. Costs, Age, Length of Stay and Charlson index were the most important variables. 
+I managed to improve my accuracy a little using grid search. Costs, Age, Length of Stay and Charlson Index 
+were the most important variables. 
 
 Let's see now how it fares using the model on my test data:
 
@@ -218,7 +229,8 @@ mean(best_model_predictions2$predict == test$Stage)
 
 This is the best model with a slightly higher accuracy than the result using grid search with random forest. 
 
-Generally speaking though this dataset was not very informative regarding classification of CKD stages. As seen before in the past exercise only Stage 3 was reliably categorized by the algorithms.
+Generally speaking though this dataset was not very informative regarding classification of CKD stages.
+As seen before in the past exercise only Stage 3 was reliably categorized by the algorithms.
 
 
 
