@@ -61,7 +61,7 @@ h2o.performance(bayes_m, test)
 ```
 
 My overall Error was 0.613 for the Test set which gives me an accuracy of just 38.7% which was lower 
-than the previous exercise using the e1071 package.
+than the previous project using the e1071 package.
 
 
 
@@ -81,7 +81,7 @@ Getting the metrics:
 summary(grid)
 ```
 This is sorted by logloss, I can change the metric. Lets use accuracy instead so it is more easily 
-comparable to the models in the previous exercise:
+comparable to the models in the previous project:
 
 ```{r}
 rf_sorted <- h2o.getGrid(grid_id = "grid1", sort_by = "accuracy", decreasing = T)
