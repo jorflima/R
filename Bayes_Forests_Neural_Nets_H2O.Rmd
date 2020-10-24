@@ -7,7 +7,7 @@ output: html_document
 
 # End Stage Renal Disease - H2o
 
-On the previous exercise I used a 20% sample of my data because of memory allocation problems. In this final project I will try
+On the previous project I used a 20% sample of my data because of memory allocation problems. In this final project I will try
 to use the full dataset named "NIS_imputed" to fit three models: Naive Bayes, Random Forest and Deep Learning. 
 I will use the H2o library / workframe.
 
@@ -99,7 +99,7 @@ summary(best_model)
 So the model chosen had a max depth of 10, used 100 trees and had an accuracy of approximately 42.85% 
 which is currently the best model. The second best was random forest using base parameters from the last project. 
 This was considerably better than the Naive Bayes approach. Variables that were important are Age and Race which
-was consistent with the previous exercise. The news here is that wscore_ahrq was placed second and was 
+was consistent with the previous project. The news here is that wscore_ahrq was placed second and was 
 not valued high before. 
 
 
@@ -136,7 +136,7 @@ predictors <- setdiff(names(df), response)
 predictors
 ```
 
-The reasoning the choice of variables and their exploratory graphs can be found on the previous exercise.
+The reasoning the choice of variables and their exploratory graphs can be found on the previous project.
 
 Fitting my Deep Learning model using the default parameters (2 hidden layers with 200 neuros each):
 
